@@ -4,8 +4,10 @@ import (
 	"context"
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -26,15 +28,27 @@ var excercises = []excercise{
 }
 
 func main() {
-	// Set up the MongoDB client
-	client, err := mongo.Connect(context.Background(), options.Client().ApplyURI("mongodb://localhost:27017"))
+	if err := godotenv.Load(); err != nil {
+		log.Println("No .env file found")
+	}
+	uri := os.Getenv("MONGODB_URI")
+	docs := "www.mongodb.com/docs/drivers/go/current/"
+	if uri == "" {
+		log.Fatal("Set your 'MONGODB_URI' environment variable. " +
+			"See: " + docs +
+			"usage-examples/#environment-variable")
+	}
+	client, err := mongo.Connect(context.TODO(), options.Client().
+		ApplyURI(uri))
 	if err != nil {
-		log.Fatal(err)
+		panic(err)
 	}
 
-	defer client.Disconnect(context.Background())
-	// Access the database and collection
-	//collection := client.Database("excercises").Collection("excercises")
+	defer func() {
+		if err := client.Disconnect(context.TODO()); err != nil {
+			panic(err)
+		}
+	}()
 
 	router := gin.Default()
 	router.GET("/excercises", getExcercises)

@@ -1,7 +1,14 @@
 version: '3.8'
 services:
+  fit_api:
+    environment:
+      MONGODB_URI: mongodb://root:example@mongodb:27017/
+    build: .
   mongodb:
     image: mongo:8
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: example
     ports:
       - '27017:27017'
     volumes:

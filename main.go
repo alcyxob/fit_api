@@ -41,13 +41,20 @@ func init() {
 // Our implementation logic for connecting to MongoDB
 func connect_to_mongodb() error {
 	uri := os.Getenv("MONGODB_URI")
-	serverAPI := options.ServerAPI(options.ServerAPIVersion1)
-	opts := options.Client().ApplyURI(uri).SetServerAPIOptions(serverAPI)
+	credential := options.Credential{
+		AuthMechanism: "SCRAM-SHA-1",
+		Username:      "root",
+		Password:      "example",
+	}
+	opts := options.Client().ApplyURI(uri).SetAuth(credential)
 	client, err := mongo.Connect(context.TODO(), opts)
 	if err != nil {
 		panic(err)
 	}
-	err = client.Ping(context.TODO(), nil)
+	err = client.Ping(context.Background(), nil)
+	if err != nil {
+		log.Fatal(err)
+	}
 	mongoClient = client
 	return err
 }

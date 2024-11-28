@@ -11,7 +11,7 @@ services:
       - dbdata8:/data/db
   fit_api:
     environment:
-      MONGODB_URI: mongodb://root:example@mongodb:27017/
+      MONGODB_URI: mongodb://mongodb:27017/
     build: .
 volumes:
   dbdata8:

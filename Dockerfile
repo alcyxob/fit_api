@@ -1,30 +1,35 @@
-# syntax=docker/dockerfile:1
+# Stage 1: Build the application
+FROM golang:1.23-alpine AS builder
 
-# Build the application from source
-FROM golang:1.23 AS build-stage
-
+# Set the working directory
 WORKDIR /app
 
+# Copy the Go module files
 COPY go.mod go.sum ./
+
+# Download dependencies
 RUN go mod download
 
-COPY *.go ./
+# Copy the source code
+COPY . .
 
-RUN CGO_ENABLED=0 GOOS=linux go build -o /fit-api
+# Build the application
+RUN CGO_ENABLED=0 GOOS=linux go build -o trainer-app .
 
-# Run the tests in the container
-FROM build-stage AS run-test-stage
-RUN go test -v ./...
+# Stage 2: Create a lightweight runtime image
+FROM alpine:latest
 
-# Deploy the application binary into a lean image
-FROM gcr.io/distroless/base-debian11 AS build-release-stage
+# Set the working directory
+WORKDIR /app
 
-WORKDIR /
+# Copy the binary from the builder stage
+COPY --from=builder /app/trainer-app .
 
-COPY --from=build-stage /fit-api /fit-api
+# Copy the SQLite database file (if it exists)
+COPY trainer.db .
 
+# Expose the application port
 EXPOSE 8080
 
-USER nonroot:nonroot
-
-ENTRYPOINT ["/fit-api"]
+# Run the application
+CMD ["./trainer-app"]

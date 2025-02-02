@@ -1,17 +1,17 @@
 version: '3.8'
+
 services:
-  mongodb:
-    image: mongo:8
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: root
-      MONGO_INITDB_ROOT_PASSWORD: example
+  trainer-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
     ports:
-      - '27017:27017'
+      - "8080:8080"
     volumes:
-      - dbdata8:/data/db
-  fit_api:
+      - ./trainer.db:/app/trainer.db
     environment:
-      MONGODB_URI: mongodb://mongodb:27017/
-    build: .
-volumes:
-  dbdata8:
+      - SQLITE_DB_PATH=/app/trainer.db
+    restart: always
+
+  # SQLite does not require a separate service, as it is file-based.
+  # The database file is mounted as a volume in the trainer-app service.
